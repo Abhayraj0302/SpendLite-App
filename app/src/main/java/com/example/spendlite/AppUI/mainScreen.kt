@@ -1,5 +1,7 @@
 package com.example.spendlite.AppUI
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,10 +10,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -109,8 +114,11 @@ fun MainScreen(
                     }
                 }
             } else {
-                items(vm.filteredExpenses) { expense ->
-                    ExpenseCard(expense)
+                items(vm.filteredExpenses, key = { it.title + it.date + it.amount }) { expense ->
+                    SwipeToDeleteExpenseCard(
+                        expense = expense,
+                        onDelete = { vm.deleteExpense(expense) }
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
@@ -131,7 +139,56 @@ fun MainScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SwipeToDeleteExpenseCard(
+    expense: Expense,
+    onDelete: () -> Unit
+) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+                true
+            } else false
+        },
+        positionalThreshold = { it * 0.4f }
+    )
 
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = true,
+        backgroundContent = {
+            val color by animateColorAsState(
+                targetValue = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart)
+                    Color(0xFFB00020) else Color(0xFF2A2A2A),
+                label = "swipe bg"
+            )
+            val scale by animateFloatAsState(
+                targetValue = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart)
+                    1f else 0.75f,
+                label = "icon scale"
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color, RoundedCornerShape(16.dp))
+                    .padding(end = 20.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = Color.White,
+                    modifier = Modifier.scale(scale)
+                )
+            }
+        }
+    ) {
+        ExpenseCard(expense)
+    }
+}
 @Composable
 fun ExpenseCard(expense: Expense) {
     Card(
@@ -140,7 +197,7 @@ fun ExpenseCard(expense: Expense) {
         colors   = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
     ) {
         Row(
-            modifier            = Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment   = Alignment.CenterVertically,
@@ -148,7 +205,7 @@ fun ExpenseCard(expense: Expense) {
         ) {
             Column {
                 Text(
-                    text       = expense.title,
+                    text      = expense.title,
                     color      = Color.White,
                     fontSize   = 16.sp,
                     fontWeight = FontWeight.SemiBold
@@ -161,13 +218,13 @@ fun ExpenseCard(expense: Expense) {
                 )
             }
             Text(
-                text       = "-₹${
+                text = "-₹${
                     java.text.NumberFormat
                         .getNumberInstance(java.util.Locale.US)
                         .format(expense.amount.toInt())
                 }",
-                color      = Color(0xFFFF6B6B),
-                fontSize   = 16.sp,
+                color = Color(0xFFFF6B6B),
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
         }

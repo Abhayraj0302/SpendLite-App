@@ -57,4 +57,7 @@ class ViewModelApp : ViewModel() {
         newspends = ""
         selectexpenseCategory = "Food"
     }
+    fun deleteExpense(expense: Expense) {
+        _expenses.remove(expense)
+    }
 }
