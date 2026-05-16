@@ -381,7 +381,7 @@ fun AddScreen(
                     }else {
                         Toast.makeText(
                             context,
-                            "Failed: amount='$amount' parsed=$parsed title='${vm.newspends}'",
+                            "Please Enter Amount, Title and Date",
                             Toast.LENGTH_LONG
                         ).show()
                     }
