@@ -16,7 +16,6 @@ data class Expense(
     val date: String
 )
 class ViewModelApp : ViewModel() {
-
     private val _expenses = mutableStateListOf<Expense>()
     val expenses: List<Expense> get() = _expenses
 

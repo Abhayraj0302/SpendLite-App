@@ -14,7 +14,7 @@ val AppBackground   = Color(0xFF141414)
 val CardSurface     = Color(0xFF1E1E1E)
 val ChipInactive    = Color(0xFF2A2A2A)
 
-val TealAccent      = Color(0xFF5DCAA5)
+val TealAccent      = Color(0xBF5DCA81)
 val TealTint        = Color(0x1A1D9E75)
 val TealDeep        = Color(0xFF04342C)
 

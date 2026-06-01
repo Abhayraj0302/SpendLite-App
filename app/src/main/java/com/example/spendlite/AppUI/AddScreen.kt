@@ -25,10 +25,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -54,7 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextAlign.Companion.Center
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,10 +80,9 @@ fun AddScreen(
 ) {
 
     var amount by rememberSaveable { mutableStateOf("") }
-    var title by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf("Select Date") }
-    var context = LocalContext.current
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -144,7 +143,7 @@ fun AddScreen(
                 textStyle = TextStyle(
                     fontSize = 48.sp,
                     color = TextPrimary,
-                    textAlign = TextAlign.Center
+                    textAlign = Center
                 ),
                 cursorBrush = SolidColor(TealAccent),
                 decorationBox = { innerTextField ->
@@ -166,7 +165,7 @@ fun AddScreen(
                                     fontSize = 48.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimary,
-                                    textAlign = TextAlign.Center
+                                    textAlign = Center
                                 )
                             }
                             innerTextField()
@@ -175,10 +174,10 @@ fun AddScreen(
                 }
             )
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 100.dp, vertical = 8.dp),
-                color = TealAccent,
-                thickness = 4.dp
+                thickness = 4.dp,
+                color = TealAccent
             )
 
             TextField(
