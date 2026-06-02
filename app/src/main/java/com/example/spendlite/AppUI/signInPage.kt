@@ -1,6 +1,7 @@
 package com.example.spendlite.AppUI
 
 import android.widget.Toast
+import androidx.collection.emptyLongSet
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
@@ -56,7 +56,8 @@ fun SignInPage(
     navController: NavHostController
 ) {
 
-    var GmailID by rememberSaveable { mutableStateOf("") }
+    var SignInGmailID by rememberSaveable { mutableStateOf("") }
+    var SignInGmailIDerror by rememberSaveable { mutableStateOf<String?>(null) }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -78,8 +79,11 @@ fun SignInPage(
         OutlinedTextField(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(0.8f),
-            value = GmailID,
-            onValueChange = { GmailID = it },
+            value = SignInGmailID,
+            onValueChange = {
+                SignInGmailID = it
+                SignInGmailIDerror = null
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = TealAccent,
                 unfocusedBorderColor = TealTint,
@@ -98,7 +102,18 @@ fun SignInPage(
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
-            )
+            ),
+
+            isError = SignInGmailIDerror != null,
+            supportingText = {
+                if (SignInGmailIDerror != null) {
+                    Text(
+                        text = SignInGmailIDerror!!,
+                        color = Color.Red,
+                        style = TextStyle(fontSize = 12.sp)
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -149,12 +164,17 @@ fun SignInPage(
         Button(
             modifier = Modifier.fillMaxWidth(0.75f),
             onClick = {
-                Firebase.auth.signInWithEmailAndPassword(GmailID,password)
+                Firebase.auth.signInWithEmailAndPassword(SignInGmailID, password)
                     .addOnCompleteListener { task ->
-                        if(task.isSuccessful){
+                        if (task.isSuccessful) {
                             navController.navigate("home")
-                        }else{
-                            Toast.makeText(context,"Login Failed", Toast.LENGTH_SHORT).show()
+                        } else {
+                            val errormessage = when(task.exception){
+                                is com.google.firebase.auth.FirebaseAuthInvalidUserException -> "Gmail is not Registered"
+                                is com.google.firebase.auth.FirebaseAuthInvalidCredentialsException -> "Invalid Credentials"
+                                else -> task.exception?.message ?: "Login Failed!!"
+                            }
+                            SignInGmailIDerror = errormessage
                         }
                     }
             },

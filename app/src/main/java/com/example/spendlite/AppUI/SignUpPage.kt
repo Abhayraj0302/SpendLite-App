@@ -46,6 +46,7 @@ import com.example.spendlite.R
 import com.example.spendlite.ui.theme.AppBackground
 import com.example.spendlite.ui.theme.TealAccent
 import com.example.spendlite.ui.theme.TealTint
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -54,7 +55,8 @@ fun signUppage(
     navController: NavHostController,
 ) {
 
-    var GmailID by rememberSaveable { mutableStateOf("") }
+    var SignUpGmailID by rememberSaveable { mutableStateOf("") }
+    var gmailError by rememberSaveable { mutableStateOf<String?>(null) }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -76,8 +78,11 @@ fun signUppage(
         OutlinedTextField(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(0.8f),
-            value = GmailID,
-            onValueChange = { GmailID = it },
+            value = SignUpGmailID,
+            onValueChange = {
+                SignUpGmailID = it
+                gmailError = null
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = TealAccent,
                 unfocusedBorderColor = TealTint,
@@ -96,7 +101,17 @@ fun signUppage(
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
-            )
+            ),
+            isError = gmailError != null,
+            supportingText = {
+                if (gmailError != null) {
+                    Text(
+                        text = gmailError!!,
+                        color = Color.Red,
+                        style = TextStyle(fontSize = 12.sp)
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.padding(top = 16.dp))
@@ -146,13 +161,16 @@ fun signUppage(
         Spacer(modifier = Modifier.padding(top = 8.dp, bottom = 8.dp))
         Button(
             {
-                Firebase.auth.createUserWithEmailAndPassword(GmailID, password)
+                Firebase.auth.createUserWithEmailAndPassword(SignUpGmailID, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             Toast.makeText(context, "Sign up Successful", Toast.LENGTH_SHORT).show()
                             navController.navigate("SignInPage")
                         } else {
-                            Toast.makeText(context, "Sign up Failed", Toast.LENGTH_SHORT).show()
+                            gmailError = when(task.exception){
+                                is FirebaseAuthInvalidCredentialsException-> "Invalid Email Format"
+                                else -> task.exception?.message ?: "Signup Failed"
+                            }
                         }
                     }
             },
@@ -162,7 +180,9 @@ fun signUppage(
             Text("Create Account", fontWeight = FontWeight.Bold, color = Color.Black)
         }
 
-        TextButton(onClick = {}) {
+        TextButton(onClick = {
+
+        }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
