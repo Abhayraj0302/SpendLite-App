@@ -20,13 +20,15 @@ class ViewModelApp : ViewModel() {
     private val _expenses = mutableStateListOf<Expense>()
     val expenses: List<Expense> get() = _expenses
 
-    val totalCount: String
+    val totalCountValue: Int
         get() {
             val credits = _expenses.filter { !it.isExpense }.sumOf { it.amount }
             val debits  = _expenses.filter {  it.isExpense }.sumOf { it.amount }
-            val total   = (credits - debits).toInt()
-            return NumberFormat.getNumberInstance(Locale.US).format(total)
+            return (credits - debits).toInt()
         }
+
+    val totalCount: String
+        get() = NumberFormat.getNumberInstance(Locale.US).format(Math.abs(totalCountValue))
 
     var selectedFilter by mutableStateOf("All")
         private set

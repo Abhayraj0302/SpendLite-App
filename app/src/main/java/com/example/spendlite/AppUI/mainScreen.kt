@@ -98,9 +98,11 @@ fun MainScreen(
                                 "₹${vm.totalCount}",
                                 fontSize = 40.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (vm.totalCount.startsWith("-")) Color(0xFFFF6B6B)
-                                else if (vm.totalCount == "0")  Color.White
-                                else TealAccent
+                                color = when {
+                                    vm.totalCountValue < 0 -> Color(0xFFFF6B6B)
+                                    vm.totalCountValue == 0 -> Color.White
+                                    else -> TealAccent
+                                }
                             )
                             Row(modifier = Modifier.padding(vertical = 2.dp)) {
                                 Icon(
