@@ -126,7 +126,7 @@ fun MainScreen(
                             }
 
                             DropdownMenu(
-                                expanded = true,
+                                expanded = MenuExpanded,
                                 onDismissRequest = { MenuExpanded = false },
                                 modifier = Modifier
                                     .background(

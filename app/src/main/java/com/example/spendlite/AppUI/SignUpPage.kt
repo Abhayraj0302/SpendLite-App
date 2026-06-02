@@ -41,8 +41,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.spendlite.R
+import com.example.spendlite.ViewModelFiles.ViewModelApp
 import com.example.spendlite.ui.theme.AppBackground
 import com.example.spendlite.ui.theme.TealAccent
 import com.example.spendlite.ui.theme.TealTint
@@ -52,6 +54,7 @@ import com.google.firebase.ktx.Firebase
 
 @Composable
 fun signUppage(
+    vm: ViewModelApp = viewModel(),
     navController: NavHostController,
 ) {
 
