@@ -32,6 +32,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -82,6 +85,7 @@ fun AddScreen(
     var amount by rememberSaveable { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf("Select Date") }
+    var isExpense by remember { mutableStateOf(true) }
     val context = LocalContext.current
 
     Scaffold(
@@ -179,6 +183,43 @@ fun AddScreen(
                 thickness = 4.dp,
                 color = TealAccent
             )
+
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.width(300.dp)
+            ){
+
+                SegmentedButton(
+                    selected = !isExpense,
+                    onClick = { isExpense = !isExpense},
+                    colors = SegmentedButtonDefaults.colors(
+                        activeContainerColor = Color.Transparent,
+                        activeContentColor = TealAccent
+                    ),
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = 0,
+                        count = 2
+                    )
+
+                ) {
+                    Text("Credited", color = TealAccent,fontSize = 16.sp , fontWeight = FontWeight.Bold)
+                }
+
+                SegmentedButton(
+                    selected = isExpense,
+                    onClick = { isExpense = !isExpense},
+                    colors = SegmentedButtonDefaults.colors(
+                        activeContainerColor = Color.Transparent,
+                        activeContentColor = Color.Red
+                    ),
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = 1,
+                        count = 2
+                    )
+
+                ) {
+                    Text("Debited", color = Color.Red, fontSize = 16.sp , fontWeight = FontWeight.Bold)
+                }
+            }
 
             TextField(
                 value = vm.newspends,
@@ -373,7 +414,8 @@ fun AddScreen(
                             title    = vm.newspends,
                             amount   = parsed,
                             category = vm.selectexpenseCategory,
-                            date     = selectedDate
+                            date     = selectedDate,
+                            isExpense = isExpense
                         )
                         Toast.makeText(context, "Expense Added!", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()

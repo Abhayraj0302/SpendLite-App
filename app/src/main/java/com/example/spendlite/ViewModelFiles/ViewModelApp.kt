@@ -13,7 +13,8 @@ data class Expense(
     val title: String,
     val amount: Double,
     val category: String,
-    val date: String
+    val date: String,
+    val isExpense: Boolean = true
 )
 class ViewModelApp : ViewModel() {
     private val _expenses = mutableStateListOf<Expense>()
@@ -21,7 +22,9 @@ class ViewModelApp : ViewModel() {
 
     val totalCount: String
         get() {
-            val total = _expenses.sumOf { it.amount }.toInt()
+            val credits = _expenses.filter { !it.isExpense }.sumOf { it.amount }
+            val debits  = _expenses.filter {  it.isExpense }.sumOf { it.amount }
+            val total   = (credits - debits).toInt()
             return NumberFormat.getNumberInstance(Locale.US).format(total)
         }
 
@@ -34,8 +37,8 @@ class ViewModelApp : ViewModel() {
 
     val filteredExpenses: List<Expense>
         get() = when (selectedFilter) {
-            "Expense" -> _expenses
-            "Income"  -> emptyList()
+            "Expense" -> _expenses.filter { it.isExpense }
+            "Income"  -> _expenses.filter { !it.isExpense }
             "Pending" -> emptyList()
             else      -> _expenses
         }
@@ -51,8 +54,8 @@ class ViewModelApp : ViewModel() {
 
     fun onCategorySelect(filter: String) { selectexpenseCategory = filter }
 
-    fun addExpense(title: String, amount: Double, category: String, date: String) {
-        _expenses.add(0, Expense(title, amount, category, date))
+    fun addExpense(title: String, amount: Double, category: String, date: String,isExpense: Boolean) {
+        _expenses.add(0, Expense(title, amount, category, date,isExpense))
         newspends = ""
         selectexpenseCategory = "Food"
     }

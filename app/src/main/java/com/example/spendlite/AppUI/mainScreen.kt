@@ -98,7 +98,9 @@ fun MainScreen(
                                 "₹${vm.totalCount}",
                                 fontSize = 40.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextPrimary
+                                color = if (vm.totalCount.startsWith("-")) Color(0xFFFF6B6B)
+                                else if (vm.totalCount == "0")  Color.White
+                                else TealAccent
                             )
                             Row(modifier = Modifier.padding(vertical = 2.dp)) {
                                 Icon(
@@ -107,7 +109,10 @@ fun MainScreen(
                                     contentDescription = null,
                                     tint = TealAccent
                                 )
-                                Text("8% from last month", color = TealAccent, fontSize = 16.sp)
+                                Row() {
+                                    Text("8% ", color = TealAccent, fontSize = 16.sp)
+                                    Text("from last month", color = TextMuted, fontSize = 16.sp)
+                                }
                             }
                         }
                         Box(
@@ -173,7 +178,7 @@ fun MainScreen(
                     }
 
 
-                    val filters = listOf("All", "Income", "Expense", "Pending")
+                    val filters = listOf("All", "Income", "Expense")
                     Row(
                         horizontalArrangement = Arrangement.SpaceAround,
                         modifier = Modifier.fillMaxWidth()
@@ -325,12 +330,12 @@ fun ExpenseCard(expense: Expense) {
                 )
             }
             Text(
-                text = "-₹${
+                text = "${if (expense.isExpense) "-" else "+"}₹${
                     java.text.NumberFormat
                         .getNumberInstance(java.util.Locale.US)
                         .format(expense.amount.toInt())
                 }",
-                color = Color(0xFFFF6B6B),
+                color = if (expense.isExpense) Color(0xFFFF6B6B) else TealAccent,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
