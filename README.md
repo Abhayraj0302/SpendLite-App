@@ -4,9 +4,15 @@ A minimal personal expense tracker for Android built with Jetpack Compose.
 
 ## Screenshots
 
-<img width="310" height="681" alt="Screenshot 2026-05-15 at 21 31 55" src="https://github.com/user-attachments/assets/a4881cae-0b31-482d-a0c7-de13f218e435" />
-<img width="313" height="688" alt="Screenshot 2026-05-15 at 21 32 15" src="https://github.com/user-attachments/assets/b550b641-655d-4aba-8399-c2055bfd4bad" />
 
+## 📱 Screenshots
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/c498eeb9-acb8-403f-a742-86dc1e328f51" width="220" />
+  <img src="https://github.com/user-attachments/assets/3abe7ff5-a743-4860-8e4e-6121997d71fc" width="220" />
+  <img src="https://github.com/user-attachments/assets/a4881cae-0b31-482d-a0c7-de13f218e435" width="220" />
+  <img src="https://github.com/user-attachments/assets/b550b641-655d-4aba-8399-c2055bfd4bad" width="220" />
+</p>
 
 ## Features
 
