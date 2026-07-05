@@ -1,4 +1,4 @@
-package com.example.spendlite.AppUI
+package com.example.spendlite.features.addexpense
 
 import android.widget.Toast
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -17,10 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -30,7 +27,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -39,8 +35,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -64,23 +58,24 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.spendlite.ViewModelFiles.ViewModelApp
+import com.example.spendlite.core.components.AppButton
+import com.example.spendlite.core.components.AppTopBar
+import com.example.spendlite.core.utils.DateUtils
+import com.example.spendlite.core.utils.Validation
 import com.example.spendlite.ui.theme.AppBackground
 import com.example.spendlite.ui.theme.TealAccent
 import com.example.spendlite.ui.theme.TealTint
 import com.example.spendlite.ui.theme.TextDim
 import com.example.spendlite.ui.theme.TextMuted
 import com.example.spendlite.ui.theme.TextPrimary
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddScreen(
-    vm: ViewModelApp = viewModel(),
+fun AddExpenseScreen(
+    vm: AddExpenseViewModel = viewModel(),
     navController: NavHostController,
 ) {
+    val state = vm.state
 
     var amount by rememberSaveable { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -90,30 +85,9 @@ fun AddScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = AppBackground,
-                    titleContentColor = TextPrimary,
-                    navigationIconContentColor = TextPrimary
-                ),
-                title = {
-                    Text(
-                        "add expense",
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.popBackStack()
-                    }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
-                }
+            AppTopBar(
+                title = "add expense",
+                onBackClick = { navController.popBackStack() }
             )
         },
         containerColor = AppBackground
@@ -139,7 +113,7 @@ fun AddScreen(
             BasicTextField(
                 value = amount,
                 onValueChange = { input ->
-                    if (input.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
+                    if (Validation.isValidAmountInput(input)) {
                         amount = input
                     }
                 },
@@ -162,7 +136,6 @@ fun AddScreen(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier.width(IntrinsicSize.Min)
                         ) {
-
                             if (amount.isEmpty()) {
                                 Text(
                                     text = "0.00",
@@ -186,82 +159,57 @@ fun AddScreen(
 
             SingleChoiceSegmentedButtonRow(
                 modifier = Modifier.width(300.dp)
-            ){
-
+            ) {
                 SegmentedButton(
                     selected = !isExpense,
-                    onClick = { isExpense = !isExpense},
+                    onClick = { isExpense = !isExpense },
                     colors = SegmentedButtonDefaults.colors(
                         activeContainerColor = Color.Transparent,
                         activeContentColor = TealAccent
                     ),
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = 0,
-                        count = 2
-                    )
-
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
                 ) {
-                    Text("Credited", color = TealAccent,fontSize = 16.sp , fontWeight = FontWeight.Bold)
+                    Text("Credited", color = TealAccent, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
 
                 SegmentedButton(
                     selected = isExpense,
-                    onClick = { isExpense = !isExpense},
+                    onClick = { isExpense = !isExpense },
                     colors = SegmentedButtonDefaults.colors(
                         activeContainerColor = Color.Transparent,
                         activeContentColor = Color.Red
                     ),
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = 1,
-                        count = 2
-                    )
-
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
                 ) {
-                    Text("Debited", color = Color.Red, fontSize = 16.sp , fontWeight = FontWeight.Bold)
+                    Text("Debited", color = Color.Red, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
             TextField(
-                value = vm.newspends,
-                onValueChange = { vm.updateNewSpends(it) },
+                value = state.newspends,
+                onValueChange = { vm.onEvent(AddExpenseEvent.OnTitleChanged(it)) },
                 singleLine = true,
-
                 textStyle = TextStyle(
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 ),
-
                 placeholder = {
                     Column {
-                        Text(
-                            "Title",
-                            fontWeight = FontWeight.Bold,
-                            color = TextDim,
-                            fontSize = 16.sp
-                        )
-                        Text(
-                            "e.g. Coffee,Rent...",
-                            fontWeight = FontWeight.Bold,
-                            color = TextDim,
-                            fontSize = 16.sp
-                        )
+                        Text("Title", fontWeight = FontWeight.Bold, color = TextDim, fontSize = 16.sp)
+                        Text("e.g. Coffee,Rent...", fontWeight = FontWeight.Bold, color = TextDim, fontSize = 16.sp)
                     }
                 },
                 shape = RoundedCornerShape(20.dp),
-
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF1E1E1E),
                     unfocusedContainerColor = Color(0xFF1E1E1E),
-
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-
                     cursorColor = TealAccent,
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White
                 ),
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 12.dp)
@@ -284,16 +232,9 @@ fun AddScreen(
                         .padding(16.dp)
                 ) {
                     Column {
-
-                        Text(
-                            "Category",
-                            fontWeight = FontWeight.Bold,
-                            color = TextDim,
-                            fontSize = 16.sp
-                        )
+                        Text("Category", fontWeight = FontWeight.Bold, color = TextDim, fontSize = 16.sp)
                         Spacer(modifier = Modifier.height(8.dp))
                         val filters = listOf("Food", "Travel", "Bills", "Other")
-                        val selected = vm.selectexpenseCategory
 
                         Row(
                             horizontalArrangement = Arrangement.SpaceAround,
@@ -301,8 +242,8 @@ fun AddScreen(
                         ) {
                             filters.forEach { filter ->
                                 FilterChip(
-                                    selected = selected == filter,
-                                    onClick = { vm.onCategorySelect(filter) },
+                                    selected = state.selectedCategory == filter,
+                                    onClick = { vm.onEvent(AddExpenseEvent.OnCategorySelected(filter)) },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = TealTint,
                                         selectedLabelColor = TealAccent,
@@ -312,7 +253,7 @@ fun AddScreen(
                                     label = { Text(filter) },
                                     border = FilterChipDefaults.filterChipBorder(
                                         enabled = true,
-                                        selected = selected == filter,
+                                        selected = state.selectedCategory == filter,
                                         borderColor = Color.Transparent,
                                         selectedBorderColor = Color.Transparent
                                     )
@@ -327,18 +268,10 @@ fun AddScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 12.dp),
-
                 shape = RoundedCornerShape(20.dp),
-
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF1E1E1E)
-                ),
-
-                onClick = {
-                    showDatePicker = true
-                }
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
+                onClick = { showDatePicker = true }
             ) {
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -346,35 +279,16 @@ fun AddScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-
-                        Text(
-                            "Date",
-                            color = TextDim,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Date", color = TextDim, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Spacer(modifier = Modifier.height(6.dp))
-
-                        Text(
-                            selectedDate,
-                            color = TextPrimary,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Text(selectedDate, color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Medium)
                     }
-                    Icon(
-                        imageVector = Icons.Default.CalendarToday,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
+                    Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, tint = Color.White)
                 }
             }
-            if (showDatePicker) {
 
+            if (showDatePicker) {
                 val datePickerState = rememberDatePickerState()
 
                 DatePickerDialog(
@@ -384,9 +298,7 @@ fun AddScreen(
                             onClick = {
                                 val millis = datePickerState.selectedDateMillis
                                 if (millis != null) {
-                                    val formatter =
-                                        SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-                                    selectedDate = formatter.format(Date(millis))
+                                    selectedDate = DateUtils.formatDate(millis)
                                 }
                                 showDatePicker = false
                             }
@@ -406,46 +318,40 @@ fun AddScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
+            AppButton(
+                text = "Save Expense",
+                fontSize = 22.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(70.dp),
+                shape = RoundedCornerShape(20.dp),
                 onClick = {
                     val parsed = amount.toDoubleOrNull()
-                    if (parsed != null && parsed > 0 && vm.newspends.isNotBlank()) {
-                        vm.addExpense(
-                            title    = vm.newspends,
-                            amount   = parsed,
-                            category = vm.selectexpenseCategory,
-                            date     = selectedDate,
-                            isExpense = isExpense
+                    if (Validation.isValidExpense(parsed, state.newspends)) {
+                        vm.onEvent(
+                            AddExpenseEvent.OnSaveExpense(
+                                amount = parsed!!,
+                                date = selectedDate,
+                                isExpense = isExpense
+                            )
                         )
                         Toast.makeText(context, "Expense Added!", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
-                    }else {
+                    } else {
                         Toast.makeText(
                             context,
                             "Please Enter Amount, Title and Date",
                             Toast.LENGTH_LONG
                         ).show()
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(70.dp),
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TealAccent,
-                    contentColor   = Color.Black
-                )
-            ) {
-                Text("Save Expense", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            }
-
+                }
+            )
         }
-
     }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun AddScreenPreview() {
-    AddScreen(navController = rememberNavController())
+fun AddExpenseScreenPreview() {
+    AddExpenseScreen(navController = rememberNavController())
 }

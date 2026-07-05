@@ -1,4 +1,4 @@
-package com.example.spendlite.AppUI
+package com.example.spendlite.core.utils
 
 object AuthConstants {
     const val GOOGLE_WEB_CLIENT_ID =
