@@ -28,7 +28,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.spendlite.navigation.NavRoutes
 import com.example.spendlite.R
@@ -42,10 +42,12 @@ import com.example.spendlite.ui.theme.TealAccent
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun SignInScreen(
-    vm: SignInViewModel = viewModel(),
+    vm: SignInViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
     val state = vm.state

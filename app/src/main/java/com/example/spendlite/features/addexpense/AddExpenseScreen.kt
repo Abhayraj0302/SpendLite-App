@@ -55,7 +55,7 @@ import androidx.compose.ui.text.style.TextAlign.Companion.Center
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.spendlite.core.components.AppButton
@@ -72,7 +72,7 @@ import com.example.spendlite.ui.theme.TextPrimary
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddExpenseScreen(
-    vm: AddExpenseViewModel = viewModel(),
+    vm: AddExpenseViewModel = hiltViewModel(),
     navController: NavHostController,
 ) {
     val state = vm.state
@@ -106,7 +106,12 @@ fun AddExpenseScreen(
                 },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("amount", color = TextMuted, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(
+                "amount",
+                color = TextMuted,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 

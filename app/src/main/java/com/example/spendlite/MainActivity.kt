@@ -7,7 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import com.example.spendlite.navigation.AppNavigation
 import com.example.spendlite.ui.theme.SpendLiteTheme
 import com.google.firebase.FirebaseApp
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,4 +21,5 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 }

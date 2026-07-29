@@ -32,14 +32,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.spendlite.data.model.Expense
+import com.example.spendlite.data.local.entity.ExpenseEntity
 import com.example.spendlite.ui.theme.TealAccent
 import com.example.spendlite.ui.theme.TextMuted
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwipeToDeleteExpenseCard(
-    expense: Expense,
+    expense: ExpenseEntity,
     onDelete: () -> Unit
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
@@ -88,7 +88,7 @@ fun SwipeToDeleteExpenseCard(
 }
 
 @Composable
-fun ExpenseCard(expense: Expense) {
+fun ExpenseCard(expense: ExpenseEntity) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),

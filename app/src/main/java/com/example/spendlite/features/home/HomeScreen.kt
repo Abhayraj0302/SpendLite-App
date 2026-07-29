@@ -29,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,7 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.spendlite.navigation.NavRoutes
@@ -57,9 +58,9 @@ import com.example.spendlite.ui.theme.TextMuted
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    vm: HomeViewModel = viewModel()
+    vm: HomeViewModel = hiltViewModel()
 ) {
-    val state = vm.state
+    val state by vm.state.collectAsState()
     var menuExpanded by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -181,7 +182,7 @@ fun HomeScreen(
                     }
                 }
             } else {
-                items(state.filteredExpenses, key = { it.title + it.date + it.amount }) { expense ->
+                items(state.filteredExpenses, key = { it.id }) { expense ->
                     SwipeToDeleteExpenseCard(
                         expense = expense,
                         onDelete = { vm.onEvent(HomeEvent.OnDeleteExpense(expense)) }

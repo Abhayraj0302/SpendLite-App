@@ -1,17 +1,59 @@
 package com.example.spendlite.data.repository
 
-import androidx.compose.runtime.mutableStateListOf
-import com.example.spendlite.data.model.Expense
+import com.example.spendlite.data.local.Dao.ExpenseDao
+import com.example.spendlite.data.local.entity.ExpenseEntity
+import com.example.spendlite.data.mapper.toEntity
+import com.example.spendlite.data.mapper.toExpenseModel
+import com.example.spendlite.data.remote.FirebaseService
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object ExpenseRepository {
-    private val _expenses = mutableStateListOf<Expense>()
-    val expenses: List<Expense> get() = _expenses
+@Singleton
+class ExpenseRepository @Inject constructor(
+    private val dao: ExpenseDao
+) {
 
-    fun addExpense(expense: Expense) {
-        _expenses.add(0, expense)
+    suspend fun addExpense(
+        expense: ExpenseEntity
+    ) {
+        dao.insertExpense(expense)
+
+        FirebaseService.addExpense(
+            uid = expense.userId,
+            expense = expense.toExpenseModel()
+        )
     }
 
-    fun deleteExpense(expense: Expense) {
-        _expenses.remove(expense)
+    suspend fun deleteExpense(
+        expense: ExpenseEntity
+    ) {
+
+        dao.deleteExpense(expense)
+
+        FirebaseService.deleteExpense(
+            uid = expense.userId,
+            expenseId = expense.id
+        )
+    }
+
+    fun getExpenses(
+        userId: String
+    ): Flow<List<ExpenseEntity>> {
+
+        return dao.getExpenses(userId)
+    }
+
+    suspend fun syncFromRemote(
+        userId: String
+    ) {
+        val remoteExpenses =
+            FirebaseService.getAllExpenses(userId)
+        dao.clearForUser(userId)
+        dao.insertAll(
+            remoteExpenses.map {
+                it.toEntity(userId)
+            }
+        )
     }
 }
