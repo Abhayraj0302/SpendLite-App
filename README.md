@@ -1,9 +1,6 @@
 # SpendLite 💸
 
-A minimal personal expense tracker for Android built with Jetpack Compose.
-
-## Screenshots
-
+A personal expense tracker for Android built with Jetpack Compose, backed by Firebase Auth and a local Room database synced to Firestore.
 
 ## 📱 Screenshots
 
@@ -16,10 +13,12 @@ A minimal personal expense tracker for Android built with Jetpack Compose.
 
 ## Features
 
-- Add expenses with title, amount, category, and date
-- View all expenses on the home screen with monthly total
-- Filter by All / Income / Expense / Pending
-- Swipe gesture to navigate back from Add screen
+- Email/password and Google Sign-In authentication via Firebase Auth
+- Add transactions with title, amount, category, date, and type (credit/debit)
+- Home screen with running balance and monthly total
+- Filter transactions by All / Income / Expense
+- Credited/debited color coding (teal for income, red for expenses)
+- Offline-first: transactions persist locally in Room and sync to Firestore
 - Clean dark UI with teal accent theme
 
 ## Tech Stack
@@ -28,16 +27,26 @@ A minimal personal expense tracker for Android built with Jetpack Compose.
 |---|---|
 | Language | Kotlin |
 | UI | Jetpack Compose |
-| Architecture | MVVM (Model-View-ViewModel) |
+| Architecture | Clean Architecture (feature-based) + MVVM |
+| Dependency Injection | Hilt |
+| Local Storage | Room |
+| Remote Backend | Firebase Auth + Cloud Firestore |
 | Navigation | Jetpack Navigation Compose |
-| State Management | `mutableStateOf`, `mutableStateListOf` |
+| State Management | `StateFlow`, `Flow` |
 | Build | Gradle (Kotlin DSL) |
 
 ## Architecture
 
-The app follows **MVVM** architecture:
+The app follows a feature-based Clean Architecture, organized as:
 
-- **Model** — `Expense` data class holds expense data
-- **ViewModel** — `ViewModelApp` manages all UI state and business logic; shared across screens via a single instance in `MainActivity`
-- **View** — `MainScreen` and `AddScreen` composables observe ViewModel state and react to changes
+- **`core/`** — shared UI components (`AppButton`, `AppTextField`, `TopBar`), utils (validation, date formatting, extensions)
+- **`data/`**
+  - `local/` — Room `ExpenseEntity`, DAO, and database
+  - `remote/` — `FirebaseService` for auth and Firestore reads/writes
+  - `repository/` — `ExpenseRepository` mediates between local DB and remote sync
+  - `mapper/` — maps between `ExpenseEntity` (DB) and `Expense` (domain model)
+- **`features/`** — one package per screen (`auth/signin`, `auth/signup`, `home`, `addexpense`), each with its own `Screen`, `ViewModel`, `State`, and `Event`
+- **`di/`** — Hilt modules providing the database, DAO, and repository as singletons
+- **`navigation/`** — `AppNavigation` and route definitions
 
+Each screen owns its own `ViewModel` (via `@HiltViewModel`), and all screens share a single `ExpenseRepository` instance injected through Hilt — so state stays consistent across the app without manual instance-passing.
