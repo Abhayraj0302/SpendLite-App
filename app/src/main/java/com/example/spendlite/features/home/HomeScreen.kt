@@ -79,7 +79,9 @@ fun HomeScreen(
                     ) {
                         BalanceCard(
                             totalCount = state.totalCount,
-                            totalCountValue = state.totalCountValue
+                            totalCountValue = state.totalCountValue,
+                            monthComparisonPercent = state.monthComparisonPercent,
+                            spendingIncreased = state.spendingIncreased
                         )
 
                         Box(
@@ -204,10 +206,4 @@ fun HomeScreen(
             Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
         }
     }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(navController = rememberNavController())
 }

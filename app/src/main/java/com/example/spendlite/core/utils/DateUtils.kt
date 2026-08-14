@@ -1,12 +1,25 @@
 package com.example.spendlite.core.utils
 
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 object DateUtils {
+    private val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+
     fun formatDate(millis: Long): String {
-        val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
         return formatter.format(Date(millis))
+    }
+
+    fun monthYear(dateStr: String): Pair<Int, Int>? {
+        val date = try {
+            formatter.parse(dateStr)
+        } catch (e: Exception) {
+            null
+        } ?: return null
+
+        val cal = Calendar.getInstance().apply { time = date }
+        return cal.get(Calendar.MONTH) to cal.get(Calendar.YEAR)
     }
 }

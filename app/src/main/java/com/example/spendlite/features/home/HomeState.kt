@@ -6,5 +6,7 @@ data class HomeState(
     val totalCountValue: Int,
     val totalCount: String,
     val selectedFilter: String,
-    val filteredExpenses: List<ExpenseEntity>
+    val filteredExpenses: List<ExpenseEntity>,
+    val monthComparisonPercent : Int?,
+    val spendingIncreased : Boolean
 )

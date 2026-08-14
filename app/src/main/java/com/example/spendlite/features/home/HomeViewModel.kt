@@ -2,12 +2,15 @@ package com.example.spendlite.features.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.spendlite.core.utils.DateUtils
 import com.example.spendlite.core.utils.toFormattedAmount
 import com.example.spendlite.data.local.entity.ExpenseEntity
 import com.example.spendlite.data.remote.FirebaseService
 import com.example.spendlite.data.repository.ExpenseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.Calendar
 import javax.inject.Inject
+import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -42,11 +45,30 @@ class HomeViewModel @Inject constructor(
                 else -> expenses
             }
 
+            val now = Calendar.getInstance()
+            val currentMonthKey = now.get(Calendar.MONTH) to now.get(Calendar.YEAR)
+            val lastMonthCal = Calendar.getInstance().apply { add(Calendar.MONTH, -1) }
+            val lastMonthKey = lastMonthCal.get(Calendar.MONTH) to lastMonthCal.get(Calendar.YEAR)
+
+            val currentMonthExpenseTotal = expenses
+                .filter { it.isExpense && DateUtils.monthYear(it.date) == currentMonthKey }
+                .sumOf { it.amount }
+            val lastMonthExpenseTotal = expenses
+                .filter { it.isExpense && DateUtils.monthYear(it.date) == lastMonthKey }
+                .sumOf { it.amount }
+
+            val monthComparisonPercent = if (lastMonthExpenseTotal > 0) {
+                (((currentMonthExpenseTotal - lastMonthExpenseTotal) / lastMonthExpenseTotal) * 100)
+                    .roundToInt()
+            } else null
+
             HomeState(
                 totalCountValue = totalCountValue,
                 totalCount = kotlin.math.abs(totalCountValue).toDouble().toFormattedAmount(),
                 selectedFilter = filter,
-                filteredExpenses = filtered
+                filteredExpenses = filtered,
+                monthComparisonPercent = monthComparisonPercent,
+                spendingIncreased = currentMonthExpenseTotal > lastMonthExpenseTotal
             )
         }.stateIn(
             scope = viewModelScope,
@@ -55,7 +77,9 @@ class HomeViewModel @Inject constructor(
                 totalCountValue = 0,
                 totalCount = "0",
                 selectedFilter = "All",
-                filteredExpenses = emptyList()
+                filteredExpenses = emptyList(),
+                monthComparisonPercent = null,
+                spendingIncreased = false
             )
         )
 
