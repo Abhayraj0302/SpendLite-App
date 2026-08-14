@@ -43,7 +43,7 @@ class HomeViewModel @Inject constructor(
                 "Expense" -> expenses.filter { it.isExpense }
                 "Income" -> expenses.filter { !it.isExpense }
                 else -> expenses
-            }
+            }.sortedByDescending { DateUtils.parseDate(it.date) }
 
             val now = Calendar.getInstance()
             val currentMonthKey = now.get(Calendar.MONTH) to now.get(Calendar.YEAR)

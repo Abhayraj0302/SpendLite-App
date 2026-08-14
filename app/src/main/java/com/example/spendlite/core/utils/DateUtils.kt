@@ -12,13 +12,15 @@ object DateUtils {
         return formatter.format(Date(millis))
     }
 
-    fun monthYear(dateStr: String): Pair<Int, Int>? {
-        val date = try {
+    fun parseDate(dateStr: String): Date? {
+        return try {
             formatter.parse(dateStr)
         } catch (e: Exception) {
             null
-        } ?: return null
-
+        }
+    }
+    fun monthYear(dateStr: String): Pair<Int, Int>? {
+        val date = parseDate(dateStr) ?: return null
         val cal = Calendar.getInstance().apply { time = date }
         return cal.get(Calendar.MONTH) to cal.get(Calendar.YEAR)
     }
