@@ -31,7 +31,9 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "spendlite.db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides

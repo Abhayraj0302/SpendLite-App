@@ -12,5 +12,7 @@ data class ExpenseEntity(
     val amount: Double,
     val category: String,
     val date: String,
-    val isExpense: Boolean
+    val isExpense: Boolean,
+    val isSynced: Boolean = true,
+    val isDeleted: Boolean = false
 )

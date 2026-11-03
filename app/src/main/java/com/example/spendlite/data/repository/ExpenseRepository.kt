@@ -38,12 +38,14 @@ class ExpenseRepository @Inject constructor(
     suspend fun addExpense(
         expense: ExpenseEntity
     ) {
-        dao.insertExpense(expense)
+        val localExpense = expense.copy(isSynced = false, isDeleted = false)
+        dao.insertExpense(localExpense)
 
         try {
             val response = api.saveExpense(expense.toExpenseModel())
             if (response.isSuccessful) {
-                Log.d(TAG, "Expense saved to MongoDB: ${response.body()}")
+                dao.markSynced(expense.id)
+                Log.d(TAG, "Expense saved and marked synced on MongoDB: ${expense.id}")
             } else {
                 Log.e(TAG, "Failed to save to MongoDB: ${response.code()} ${response.errorBody()?.string()}")
             }
@@ -55,11 +57,16 @@ class ExpenseRepository @Inject constructor(
     suspend fun deleteExpense(
         expense: ExpenseEntity
     ) {
-        dao.deleteExpense(expense)
+        if (!expense.isSynced) {
+            dao.deleteExpenseById(expense.id)
+        } else {
+            dao.insertExpense(expense.copy(isDeleted = true, isSynced = false))
+        }
 
         try {
             val response = api.deleteExpense(expense.id)
             if (response.isSuccessful) {
+                dao.deleteExpenseById(expense.id)
                 Log.d(TAG, "Expense deleted from MongoDB: ${expense.id}")
             } else {
                 Log.e(TAG, "Failed to delete from MongoDB: ${response.code()}")
@@ -79,14 +86,39 @@ class ExpenseRepository @Inject constructor(
         userId: String
     ) {
         try {
-            val remoteExpenses = api.getAllExpenses(userId)
-            dao.clearForUser(userId)
-            dao.insertAll(
-                remoteExpenses.map {
-                    it.toEntity(userId)
+            val unsyncedList = dao.getUnsyncedExpenses(userId)
+            for (unsynced in unsyncedList) {
+                try {
+                    val response = api.saveExpense(unsynced.toExpenseModel())
+                    if (response.isSuccessful) {
+                        dao.markSynced(unsynced.id)
+                        Log.d(TAG, "Pushed offline expense to MongoDB: ${unsynced.id}")
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to push offline expense ${unsynced.id}: ${e.message}")
                 }
-            )
-            Log.d(TAG, "Synced ${remoteExpenses.size} expenses from MongoDB")
+            }
+
+            val pendingDeletions = dao.getPendingDeletedExpenses(userId)
+            for (pending in pendingDeletions) {
+                try {
+                    val response = api.deleteExpense(pending.id)
+                    if (response.isSuccessful) {
+                        dao.deleteExpenseById(pending.id)
+                        Log.d(TAG, "Pushed offline deletion to MongoDB: ${pending.id}")
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to push offline deletion ${pending.id}: ${e.message}")
+                }
+            }
+
+            val remoteExpenses = api.getAllExpenses(userId)
+            dao.clearSyncedForUser(userId)
+            val remoteEntities = remoteExpenses.map {
+                it.toEntity(userId).copy(isSynced = true, isDeleted = false)
+            }
+            dao.insertAll(remoteEntities)
+            Log.d(TAG, "Synced ${remoteExpenses.size} remote expenses from MongoDB")
         } catch (e: Exception) {
             handleNetworkError("syncing from MongoDB", e)
         }

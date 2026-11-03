@@ -7,7 +7,7 @@ import com.example.spendlite.data.local.entity.ExpenseEntity
 
 @Database(
     entities = [ExpenseEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
