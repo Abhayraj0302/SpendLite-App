@@ -1,3 +1,33 @@
 <resources>
     <string name="app_name">SpendLite</string>
+
+    <!-- Auth Placeholders -->
+    <string name="placeholder_email">Enter your email</string>
+    <string name="placeholder_password">Enter your Password</string>
+    <string name="placeholder_create_password">Create your Password</string>
+
+    <!-- Auth Buttons and Links -->
+    <string name="btn_login">Login</string>
+    <string name="btn_create_account">Create Account</string>
+    <string name="btn_sign_up">Sign Up</string>
+    <string name="text_dont_have_account">Don\'t have an Account? </string>
+    <string name="btn_google_signin">Sign in using Google</string>
+    <string name="btn_google_signup">Sign up using Google</string>
+
+    <!-- Validation Errors -->
+    <string name="validation_email_required">Email is required</string>
+    <string name="validation_email_invalid">Enter a valid email address</string>
+    <string name="validation_password_required">Password is required</string>
+    <string name="validation_password_too_short">Password must be at least 6 characters</string>
+
+    <!-- Auth Errors -->
+    <string name="auth_error_incorrect_credentials">Incorrect email or password</string>
+    <string name="auth_error_no_user">No account found for this email</string>
+    <string name="auth_error_account_disabled">This account has been disabled</string>
+    <string name="auth_error_weak_password">Password must be at least 6 characters</string>
+    <string name="auth_error_user_collision">This email is already registered</string>
+    <string name="auth_error_invalid_email">Enter a valid email address</string>
+    <string name="auth_error_too_many_requests">Too many attempts. Try again later.</string>
+    <string name="auth_error_network">No internet connection</string>
+    <string name="auth_error_unknown">Something went wrong. Please try again.</string>
 </resources>

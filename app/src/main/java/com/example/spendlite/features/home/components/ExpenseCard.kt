@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -35,6 +36,8 @@ import androidx.compose.ui.unit.sp
 import com.example.spendlite.data.local.entity.ExpenseEntity
 import com.example.spendlite.ui.theme.TealAccent
 import com.example.spendlite.ui.theme.TextMuted
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,6 +92,11 @@ fun SwipeToDeleteExpenseCard(
 
 @Composable
 fun ExpenseCard(expense: ExpenseEntity) {
+    val formattedAmount = remember(expense.amount, expense.isExpense) {
+        val formatted = NumberFormat.getNumberInstance(Locale.US).format(expense.amount.toInt())
+        "${if (expense.isExpense) "-" else "+"}₹$formatted"
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -116,11 +124,7 @@ fun ExpenseCard(expense: ExpenseEntity) {
                 )
             }
             Text(
-                text = "${if (expense.isExpense) "-" else "+"}₹${
-                    java.text.NumberFormat
-                        .getNumberInstance(java.util.Locale.US)
-                        .format(expense.amount.toInt())
-                }",
+                text = formattedAmount,
                 color = if (expense.isExpense) Color(0xFFFF6B6B) else TealAccent,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold

@@ -29,11 +29,8 @@ class ExpenseController(
     }
 
     @GetMapping
-    fun getAll(
-        @RequestParam(required = false) category: String?
-    ): List<Expense> =
-        if (category != null) repository.findByCategory(category)
-        else repository.findAll()
+    fun getAll(@RequestParam userId: String): List<Expense> =
+        repository.findByUserId(userId)
 
     @GetMapping("/{id}")
     fun getById(

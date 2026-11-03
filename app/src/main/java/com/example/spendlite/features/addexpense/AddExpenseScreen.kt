@@ -1,7 +1,12 @@
 package com.example.spendlite.features.addexpense
 
 import android.widget.Toast
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -63,6 +69,7 @@ import com.example.spendlite.core.components.AppTopBar
 import com.example.spendlite.core.utils.DateUtils
 import com.example.spendlite.core.utils.Validation
 import com.example.spendlite.ui.theme.AppBackground
+import com.example.spendlite.ui.theme.Motion
 import com.example.spendlite.ui.theme.TealAccent
 import com.example.spendlite.ui.theme.TealTint
 import com.example.spendlite.ui.theme.TextDim
@@ -79,9 +86,12 @@ fun AddExpenseScreen(
 
     var amount by rememberSaveable { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
-    var selectedDate by remember { mutableStateOf("Select Date") }
+    var selectedDate by rememberSaveable { mutableStateOf(DateUtils.getTodayDate()) }
     var isExpense by remember { mutableStateOf(true) }
     val context = LocalContext.current
+    val animDisabled = Motion.isAnimationDisabled(context)
+
+    val isFormValid = amount.isNotBlank() && state.newspends.isNotBlank()
 
     Scaffold(
         topBar = {
@@ -246,19 +256,46 @@ fun AddExpenseScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             filters.forEach { filter ->
+                                val isSelected = state.selectedCategory == filter
+                                val interactionSource = remember { MutableInteractionSource() }
+                                val isPressed by interactionSource.collectIsPressedAsState()
+
+                                val chipScale by animateFloatAsState(
+                                    targetValue = if (isPressed) 0.95f else (if (isSelected) 1.08f else 1.0f),
+                                    animationSpec = Motion.BouncySpring,
+                                    label = "categoryChipScale"
+                                )
+
+                                val animBgColor by animateColorAsState(
+                                    targetValue = if (isSelected) TealTint else Color.Transparent,
+                                    animationSpec = tween(if (animDisabled) 0 else Motion.DURATION_SHORT),
+                                    label = "categoryChipBgColor"
+                                )
+
+                                val animLabelColor by animateColorAsState(
+                                    targetValue = if (isSelected) TealAccent else TextMuted,
+                                    animationSpec = tween(if (animDisabled) 0 else Motion.DURATION_SHORT),
+                                    label = "categoryChipLabelColor"
+                                )
+
                                 FilterChip(
-                                    selected = state.selectedCategory == filter,
+                                    selected = isSelected,
                                     onClick = { vm.onEvent(AddExpenseEvent.OnCategorySelected(filter)) },
+                                    interactionSource = interactionSource,
+                                    modifier = Modifier.graphicsLayer {
+                                        scaleX = chipScale
+                                        scaleY = chipScale
+                                    },
                                     colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = TealTint,
-                                        selectedLabelColor = TealAccent,
-                                        containerColor = Color.Transparent,
-                                        labelColor = TextMuted
+                                        selectedContainerColor = animBgColor,
+                                        selectedLabelColor = animLabelColor,
+                                        containerColor = animBgColor,
+                                        labelColor = animLabelColor
                                     ),
                                     label = { Text(filter) },
                                     border = FilterChipDefaults.filterChipBorder(
                                         enabled = true,
-                                        selected = state.selectedCategory == filter,
+                                        selected = isSelected,
                                         borderColor = Color.Transparent,
                                         selectedBorderColor = Color.Transparent
                                     )
@@ -294,7 +331,8 @@ fun AddExpenseScreen(
             }
 
             if (showDatePicker) {
-                val datePickerState = rememberDatePickerState()
+                val initialMillis = DateUtils.parseDate(selectedDate)?.time ?: System.currentTimeMillis()
+                val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
 
                 DatePickerDialog(
                     onDismissRequest = { showDatePicker = false },
@@ -326,6 +364,7 @@ fun AddExpenseScreen(
             AppButton(
                 text = "Save Expense",
                 fontSize = 22.sp,
+                enabled = isFormValid,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(70.dp),

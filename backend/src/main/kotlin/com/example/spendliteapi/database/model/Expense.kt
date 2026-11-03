@@ -10,5 +10,6 @@ data class Expense(
     val amount: Double = 0.0,
     val category: String = "",
     val date: String = "",
-    var isExpense: Boolean = true
+    var isExpense: Boolean = true,
+    val userId: String = ""
 )

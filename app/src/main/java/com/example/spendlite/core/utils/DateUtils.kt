@@ -12,6 +12,10 @@ object DateUtils {
         return formatter.format(Date(millis))
     }
 
+    fun getTodayDate(): String {
+        return formatDate(System.currentTimeMillis())
+    }
+
     fun parseDate(dateStr: String): Date? {
         return try {
             formatter.parse(dateStr)

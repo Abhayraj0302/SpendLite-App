@@ -19,6 +19,7 @@ fun Expense.toEntity(userId: String): ExpenseEntity {
 fun ExpenseEntity.toExpenseModel(): Expense {
     return Expense(
         id = id,
+        userId = userId,
         title = title,
         amount = amount,
         category = category,

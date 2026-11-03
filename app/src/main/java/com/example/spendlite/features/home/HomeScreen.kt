@@ -1,6 +1,11 @@
 package com.example.spendlite.features.home
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,23 +43,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.spendlite.navigation.NavRoutes
 import com.example.spendlite.R
 import com.example.spendlite.data.remote.FirebaseService
 import com.example.spendlite.features.home.components.BalanceCard
 import com.example.spendlite.features.home.components.SwipeToDeleteExpenseCard
 import com.example.spendlite.ui.theme.AppBackground
+import com.example.spendlite.ui.theme.Motion
 import com.example.spendlite.ui.theme.TealAccent
 import com.example.spendlite.ui.theme.TealTint
 import com.example.spendlite.ui.theme.TextMuted
+
+private val FILTERS = listOf("All", "Income", "Expense")
 
 @Composable
 fun HomeScreen(
@@ -62,6 +71,26 @@ fun HomeScreen(
 ) {
     val state by vm.state.collectAsState()
     var menuExpanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val animDisabled = Motion.isAnimationDisabled(context)
+
+    var fabEntered by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        fabEntered = true
+    }
+
+    val fabInteractionSource = remember { MutableInteractionSource() }
+    val isFabPressed by fabInteractionSource.collectIsPressedAsState()
+
+    val fabScale by animateFloatAsState(
+        targetValue = when {
+            !fabEntered -> 0f
+            isFabPressed -> 0.95f
+            else -> 1f
+        },
+        animationSpec = Motion.BouncySpring,
+        label = "fabScale"
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -126,7 +155,7 @@ fun HomeScreen(
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Medium
                                         )
-                                    },onClick = {
+                                    }, onClick = {
                                         menuExpanded = false
                                         FirebaseService.signOut()
                                         navController.navigate(NavRoutes.SIGN_IN) {
@@ -142,25 +171,51 @@ fun HomeScreen(
                         }
                     }
 
-                    val filters = listOf("All", "Income", "Expense")
                     Row(
                         horizontalArrangement = Arrangement.SpaceAround,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        filters.forEach { filter ->
+                        FILTERS.forEach { filter ->
+                            val isSelected = state.selectedFilter == filter
+                            val interactionSource = remember { MutableInteractionSource() }
+                            val isPressed by interactionSource.collectIsPressedAsState()
+
+                            val chipScale by animateFloatAsState(
+                                targetValue = if (isPressed) 0.95f else (if (isSelected) 1.05f else 1.0f),
+                                animationSpec = Motion.BouncySpring,
+                                label = "chipScale"
+                            )
+
+                            val animBgColor by animateColorAsState(
+                                targetValue = if (isSelected) TealTint else Color.Transparent,
+                                animationSpec = tween(if (animDisabled) 0 else Motion.DURATION_SHORT),
+                                label = "chipBgColor"
+                            )
+
+                            val animTextColor by animateColorAsState(
+                                targetValue = if (isSelected) TealAccent else TextMuted,
+                                animationSpec = tween(if (animDisabled) 0 else Motion.DURATION_SHORT),
+                                label = "chipTextColor"
+                            )
+
                             FilterChip(
-                                selected = state.selectedFilter == filter,
+                                selected = isSelected,
                                 onClick = { vm.onEvent(HomeEvent.OnFilterSelected(filter)) },
+                                interactionSource = interactionSource,
+                                modifier = Modifier.graphicsLayer {
+                                    scaleX = chipScale
+                                    scaleY = chipScale
+                                },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = TealTint,
-                                    selectedLabelColor = TealAccent,
-                                    containerColor = Color.Transparent,
-                                    labelColor = TextMuted
+                                    selectedContainerColor = animBgColor,
+                                    selectedLabelColor = animTextColor,
+                                    containerColor = animBgColor,
+                                    labelColor = animTextColor
                                 ),
                                 label = { Text(filter) },
                                 border = FilterChipDefaults.filterChipBorder(
                                     enabled = true,
-                                    selected = state.selectedFilter == filter,
+                                    selected = isSelected,
                                     borderColor = Color.Transparent,
                                     selectedBorderColor = Color.Transparent
                                 )
@@ -185,10 +240,15 @@ fun HomeScreen(
                 }
             } else {
                 items(state.filteredExpenses, key = { it.id }) { expense ->
-                    SwipeToDeleteExpenseCard(
-                        expense = expense,
-                        onDelete = { vm.onEvent(HomeEvent.OnDeleteExpense(expense)) }
-                    )
+                    Box(modifier = Modifier.animateItem()) {
+                        val onDelete = remember(expense) {
+                            { vm.onEvent(HomeEvent.OnDeleteExpense(expense)) }
+                        }
+                        SwipeToDeleteExpenseCard(
+                            expense = expense,
+                            onDelete = onDelete
+                        )
+                    }
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
@@ -199,9 +259,14 @@ fun HomeScreen(
         FloatingActionButton(
             onClick = { navController.navigate(NavRoutes.ADD) },
             containerColor = TealAccent,
+            interactionSource = fabInteractionSource,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
+                .graphicsLayer {
+                    scaleX = fabScale
+                    scaleY = fabScale
+                }
         ) {
             Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
         }
